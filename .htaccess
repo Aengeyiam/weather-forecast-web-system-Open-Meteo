@@ -1,0 +1,7 @@
+# 天气预报网页系统 — Apache 部署配置
+DirectoryIndex index.html
+
+# 禁止直接访问 SQL 文件
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>
