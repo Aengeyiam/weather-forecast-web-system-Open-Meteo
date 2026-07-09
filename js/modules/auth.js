@@ -1,69 +1,99 @@
 /**
- * 天气预报网页系统 - 认证模块（localStorage 版 + 注册）
+ * 天气预报网页系统 - 认证模块（Part A：数据层）
+ * 作者：熊倡
+ * 功能：用户登录、退出、注册、登录态管理
+ * 
+ * 依赖：api/login.php, api/logout.php, api/register.php
  */
-const AUTH_KEY = 'weather_auth';
-const USERS_KEY = 'weather_users';
-const SESSION_KEY = 'weather_session';
+
+const API_BASE = 'api';
 
 const Auth = {
-    _init() {
-        if (!localStorage.getItem(USERS_KEY)) {
-            const users = {
-                zhangsan: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
-                lisi:     'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
-                wangwu:   '14f8f4bb8c0e79a02670a5fea5682da717a5b3d3dc7b1706f7a4bab9afae18c2'
+    /**
+     * 用户登录
+     * @param {string} username - 用户名
+     * @param {string} password - 密码
+     * @returns {Promise<{success: boolean, message: string}>}
+     */
+    async login(username, password) {
+        try {
+            const response = await fetch(`${API_BASE}/login.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                CONFIG.APP_STATE.isLoggedIn = true;
+                CONFIG.APP_STATE.userId = data.user_id;
+                CONFIG.APP_STATE.username = data.username;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('登录请求失败:', error);
+            return {
+                success: false,
+                message: '网络异常，请稍后重试'
             };
-            localStorage.setItem(USERS_KEY, JSON.stringify(users));
         }
     },
 
-    async login(username, password) {
-        if (!username || !password) return { success: false, message: '请输入用户名和密码' };
-        const users = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-        if (!users[username]) return { success: false, message: '用户名或密码错误' };
-        const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
-            new TextEncoder().encode(password)))).map(b => b.toString(16).padStart(2,'0')).join('');
-        if (h !== users[username]) return { success: false, message: '用户名或密码错误' };
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ username, userId: username }));
-        CONFIG.APP_STATE.isLoggedIn = true;
-        CONFIG.APP_STATE.userId = username;
-        CONFIG.APP_STATE.username = username;
-        return { success: true, userId: username, username };
-    },
-
+    /**
+     * 用户注册
+     * @param {string} username - 用户名
+     * @param {string} password - 密码
+     * @returns {Promise<{success: boolean, message: string}>}
+     */
     async register(username, password) {
-        if (!username || !password) return { success: false, message: '用户名和密码不能为空' };
-        if (username.length < 2 || username.length > 50) return { success: false, message: '用户名长度需2-50字符' };
-        if (password.length < 6) return { success: false, message: '密码至少6位' };
-        const users = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-        if (users[username]) return { success: false, message: '用户名已存在' };
-        const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
-            new TextEncoder().encode(password)))).map(b => b.toString(16).padStart(2,'0')).join('');
-        users[username] = h;
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
-        return { success: true, userId: username, username, message: '注册成功，请登录' };
+        try {
+            const response = await fetch(`${API_BASE}/register.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            return await response.json();
+        } catch (error) {
+            console.error('注册请求失败:', error);
+            return {
+                success: false,
+                message: '网络异常，请稍后重试'
+            };
+        }
     },
 
-    logout() {
-        localStorage.removeItem(SESSION_KEY);
+    /**
+     * 退出登录
+     * @returns {Promise<{success: boolean}>}
+     */
+    async logout() {
+        try {
+            await fetch(`${API_BASE}/logout.php`, { method: 'POST' });
+        } catch (e) {
+        }
+
         CONFIG.APP_STATE.isLoggedIn = false;
         CONFIG.APP_STATE.userId = null;
         CONFIG.APP_STATE.username = '';
+        CONFIG.APP_STATE.currentCity = '';
     },
 
-    getCurrentUserId() { return CONFIG.APP_STATE.userId; },
+    /**
+     * 获取当前登录用户 ID（共享接口1）
+     * 调用方：吴裕勇 — weather.js 中查询成功后获取 userId
+     * @returns {number|null}
+     */
+    getCurrentUserId() {
+        return CONFIG.APP_STATE.userId;
+    },
+
+    _init() {
+    },
 
     restoreSession() {
-        const s = localStorage.getItem(SESSION_KEY);
-        if (s) {
-            try {
-                const d = JSON.parse(s);
-                CONFIG.APP_STATE.isLoggedIn = true;
-                CONFIG.APP_STATE.userId = d.userId;
-                CONFIG.APP_STATE.username = d.username;
-                return true;
-            } catch(e) {}
-        }
         return false;
     }
 };

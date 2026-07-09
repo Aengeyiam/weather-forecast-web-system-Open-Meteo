@@ -45,45 +45,14 @@
                         <span class="btn-text">登 录</span>
                         <span class="btn-loading hidden">登录中...</span>
                     </button>
+
+                    <!-- 注册按钮 -->
+                    <a href="register.html" class="btn btn-outline btn-block" style="text-decoration:none;">注 册</a>
                 </form>
 
+                <!-- 测试账号提示 -->
                 <div class="login-hint">
-                    <p>测试账号：zhangsan / 123456 ｜ <a href="#" id="showRegister">注册新账号</a></p>
-                </div>
-
-                <!-- 注册表单（默认隐藏） -->
-                <form id="registerForm" class="login-form hidden" autocomplete="off">
-                    <div class="form-group">
-                        <label for="regUsername" class="form-label">用户名</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
-                            <input type="text" id="regUsername" class="form-input" placeholder="2-50个字符">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="regPassword" class="form-label">密码</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="regPassword" class="form-input" placeholder="至少6位">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="regPassword2" class="form-label">确认密码</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="regPassword2" class="form-input" placeholder="再次输入密码">
-                        </div>
-                    </div>
-                    <div id="regError" class="error-message hidden"></div>
-                    <div id="regSuccess" class="error-message hidden" style="background:#E8F5E9;color:#2E7D32;border-left-color:#2E7D32;"></div>
-                    <button type="submit" id="regBtn" class="btn btn-primary btn-block">
-                        <span class="btn-text">注 册</span>
-                        <span class="btn-loading hidden">注册中...</span>
-                    </button>
-                </form>
-
-                <div id="regHint" class="login-hint hidden">
-                    <p>已有账号？<a href="#" id="showLogin">返回登录</a></p>
+                    <p>测试账号：zhangsan / 123456</p>
                 </div>
             </div>
         </div>

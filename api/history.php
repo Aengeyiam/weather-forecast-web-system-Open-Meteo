@@ -1,44 +1,68 @@
 <?php
 /**
  * 天气预报网页系统 - 历史记录接口
- * GET  ?userId=X      → 查询历史
- * POST {userId, city} → 新增记录
  * 作者：熊倡
+ * 
+ * GET  /api/history.php?action=list   — 获取当前用户历史记录
+ * POST /api/history.php               — 保存查询记录
+ * 
+ * 返回格式：JSON
  */
+
 require_once __DIR__ . '/config.php';
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
+// 启动会话，获取登录用户
+session_start();
+
+// 检查登录态
+if (!isset($_SESSION['user_id'])) {
+    jsonResponse(['success' => false, 'message' => '请先登录'], 401);
+}
+
+$userId = $_SESSION['user_id'];
+$pdo = getDBConnection();
+
+// ---------- GET：获取历史记录 ----------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $userId = $_GET['userId'] ?? '';
-    if (!$userId || !ctype_digit($userId)) {
-        jsonResponse(['success' => true, 'records' => []]);
+    $action = $_GET['action'] ?? 'list';
+    
+    if ($action === 'list') {
+        $stmt = $pdo->prepare(
+            'SELECT record_id, query_city, query_time 
+             FROM weather_history 
+             WHERE user_id = ? 
+             ORDER BY query_time DESC 
+             LIMIT 50'
+        );
+        $stmt->execute([$userId]);
+        $records = $stmt->fetchAll();
+        
+        jsonResponse([
+            'success' => true,
+            'data'    => $records
+        ]);
     }
-    $pdo = getDB();
-    $stmt = $pdo->prepare(
-        'SELECT record_id, query_city, query_time FROM weather_history WHERE user_id = ? ORDER BY query_time DESC LIMIT 100'
-    );
-    $stmt->execute([(int)$userId]);
-    $records = $stmt->fetchAll();
-    $result = array_map(function($r) {
-        return ['recordId' => (int)$r['record_id'], 'queryCity' => $r['query_city'], 'queryTime' => $r['query_time']];
-    }, $records);
-    jsonResponse(['success' => true, 'records' => $result]);
 }
 
+// ---------- POST：保存查询记录 ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = getJsonInput();
-    $userId = $input['userId'] ?? '';
+    $input = json_decode(file_get_contents('php://input'), true);
     $city = trim($input['city'] ?? '');
-    if (!$userId || !$city) {
-        jsonResponse(['success' => false, 'message' => '参数不完整'], 400);
+    
+    if ($city === '') {
+        jsonResponse(['success' => false, 'message' => '城市名不能为空']);
     }
-    $pdo = getDB();
-    $stmt = $pdo->prepare('INSERT INTO weather_history (user_id, query_city) VALUES (?, ?)');
-    $stmt->execute([(int)$userId, $city]);
-    jsonResponse(['success' => true, 'recordId' => (int)$pdo->lastInsertId()], 201);
+    
+    $stmt = $pdo->prepare(
+        'INSERT INTO weather_history (user_id, query_city) VALUES (?, ?)'
+    );
+    $stmt->execute([$userId, $city]);
+    
+    jsonResponse([
+        'success'  => true,
+        'recordId' => (int)$pdo->lastInsertId()
+    ]);
 }
 
-jsonResponse(['success' => false, 'message' => '不支持的请求方法'], 405);
+// 其他请求方式
+jsonResponse(['success' => false, 'message' => '请求方式错误'], 405);

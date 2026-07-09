@@ -1,38 +1,62 @@
 <?php
 /**
- * 天气预报网页系统 - 注册接口
+ * 天气预报网页系统 - 用户注册接口
  * 作者：熊倡
+ * 
+ * 请求方式：POST
+ * 请求参数：username (string), password (string)
+ * 返回格式：JSON
  */
-require_once __DIR__ . '/config.php';
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { jsonResponse(['success' => false, 'message' => '仅支持POST请求'], 405); }
 
-$input = getJsonInput();
+require_once __DIR__ . '/config.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    jsonResponse(['success' => false, 'message' => '请求方式错误'], 405);
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
 $username = trim($input['username'] ?? '');
 $password = $input['password'] ?? '';
 
-if (!$username || !$password) {
-    jsonResponse(['success' => false, 'message' => '用户名和密码不能为空'], 400);
-}
-if (mb_strlen($username) < 2 || mb_strlen($username) > 50) {
-    jsonResponse(['success' => false, 'message' => '用户名长度需在2-50个字符之间'], 400);
-}
-if (strlen($password) < 6) {
-    jsonResponse(['success' => false, 'message' => '密码长度不能少于6位'], 400);
+if ($username === '' || $password === '') {
+    jsonResponse([
+        'success' => false,
+        'message' => '请输入用户名和密码'
+    ]);
 }
 
-$pdo = getDB();
-try {
-    $stmt = $pdo->prepare('INSERT INTO user (username, password) VALUES (?, ?)');
-    $stmt->execute([$username, hash('sha256', $password)]);
-    $userId = (int)$pdo->lastInsertId();
-    jsonResponse(['success' => true, 'userId' => $userId, 'username' => $username, 'message' => '注册成功，请登录'], 201);
-} catch (PDOException $e) {
-    if ($e->getCode() == 23000) {
-        jsonResponse(['success' => false, 'message' => '用户名已存在，请换一个'], 409);
-    }
-    jsonResponse(['success' => false, 'message' => '注册失败，请稍后重试'], 500);
+if (mb_strlen($username) < 2 || mb_strlen($username) > 50) {
+    jsonResponse([
+        'success' => false,
+        'message' => '用户名长度需在2-50个字符之间'
+    ]);
 }
+
+if (mb_strlen($password) < 6) {
+    jsonResponse([
+        'success' => false,
+        'message' => '密码长度不能少于6位'
+    ]);
+}
+
+$pdo = getDBConnection();
+
+$stmt = $pdo->prepare('SELECT user_id FROM `user` WHERE username = ?');
+$stmt->execute([$username]);
+
+if ($stmt->fetch()) {
+    jsonResponse([
+        'success' => false,
+        'message' => '该用户名已被注册，请更换'
+    ]);
+}
+
+$stmt = $pdo->prepare('INSERT INTO `user` (username, password) VALUES (?, SHA2(?, 256))');
+$stmt->execute([$username, $password]);
+
+jsonResponse([
+    'success'  => true,
+    'message'  => '注册成功',
+    'user_id'  => (int)$pdo->lastInsertId(),
+    'username' => $username
+]);
