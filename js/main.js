@@ -68,7 +68,7 @@ async function triggerSearch(cityName) {
         Weather.renderCurrentWeather(data, info.name);
         Weather.renderForecast(data);
         CONFIG.APP_STATE.currentCity = info.name;
-        await History.saveQueryRecord(info.name);
+        await History.saveQueryRecord(city);
         await refreshHistory();
     } catch (e) {
         Weather.showError(e.message === 'NETWORK_ERROR' ? '网络异常，请稍后重试' : '天气数据获取失败，请稍后重试');
