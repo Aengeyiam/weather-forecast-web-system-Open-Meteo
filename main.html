@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页 - 个性化天气预报与生活建议系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ==================== 天气主页 ==================== -->
+    <div id="weatherPage" class="page active">
+        <div class="main-container">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <span class="topbar-logo">🌤️</span>
+                    <div>
+                        <h2 class="topbar-title">个性化天气预报与生活建议系统</h2>
+                        <p class="topbar-subtitle">Open-Meteo 数据驱动版</p>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <span class="topbar-welcome">欢迎，<strong id="displayUsername">用户</strong></span>
+                    <button id="logoutBtn" class="btn btn-outline btn-sm">退出登录</button>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <section class="search-section">
+                    <div class="search-box">
+                        <input
+                            type="text"
+                            id="cityInput"
+                            class="search-input"
+                            placeholder="请输入城市名称（如：北京、上海、广州）"
+                            autocomplete="off"
+                        >
+                        <button id="searchBtn" class="btn btn-primary search-btn">
+                            <span class="btn-text">🔍 搜索</span>
+                            <span class="btn-loading hidden">查询中...</span>
+                        </button>
+                    </div>
+                    <div class="quick-actions">
+                        <button id="addFavoriteBtn" class="btn btn-soft btn-sm" disabled>⭐ 收藏当前城市</button>
+                        <button id="setDefaultBtn" class="btn btn-soft btn-sm" disabled>🏠 设为默认城市</button>
+                        <span id="currentCityHint" class="quick-hint">先搜索城市，再收藏或设置默认城市</span>
+                    </div>
+                    <div id="searchError" class="error-message hidden"></div>
+                    <div id="searchLoading" class="loading-indicator hidden">
+                        <span class="spinner"></span> 正在查询...
+                    </div>
+                </section>
+
+                <section class="feature-panel favorite-section">
+                    <div class="panel-header">
+                        <h3 class="section-title clean-title">常用城市</h3>
+                        <span class="section-desc">点击城市可快速查看天气，支持设置默认城市</span>
+                    </div>
+                    <div id="favoriteContainer" class="favorite-container">
+                        <p class="muted-text">暂无收藏城市，搜索后点击“收藏当前城市”。</p>
+                    </div>
+                </section>
+
+                <section class="feature-grid">
+                    <div class="feature-panel profile-card">
+                        <div class="panel-header compact-header">
+                            <h3 class="section-title clean-title">个性化身份</h3>
+                            <span class="section-desc">影响生活建议和出行评分</span>
+                        </div>
+                        <div class="profile-row">
+                            <select id="profileSelect" class="select-input">
+                                <option value="student">学生</option>
+                                <option value="worker">上班族</option>
+                                <option value="elder">老人</option>
+                                <option value="outdoor">户外运动者</option>
+                                <option value="driver">司机</option>
+                            </select>
+                            <button id="saveProfileBtn" class="btn btn-primary btn-sm">保存</button>
+                        </div>
+                        <p id="profileTip" class="profile-tip">系统会根据身份生成不同的天气建议。</p>
+                    </div>
+
+                    <div class="feature-panel alert-setting-card">
+                        <div class="panel-header compact-header">
+                            <h3 class="section-title clean-title">预警规则设置</h3>
+                            <span class="section-desc">无需短信，网页内实时提醒</span>
+                        </div>
+                        <div class="alert-form-grid">
+                            <label>高温 ≥ <input id="alertHighTemp" type="number" min="0" max="60" value="35"> ℃</label>
+                            <label>低温 ≤ <input id="alertLowTemp" type="number" min="-40" max="30" value="5"> ℃</label>
+                            <label>降雨概率 ≥ <input id="alertRainProb" type="number" min="0" max="100" value="50"> %</label>
+                            <label>风速 ≥ <input id="alertWindSpeed" type="number" min="0" max="120" value="30"> km/h</label>
+                            <label>紫外线 ≥ <input id="alertUvIndex" type="number" min="0" max="15" value="8"> </label>
+                            <label class="switch-line"><input id="alertsEnabled" type="checkbox" checked> 开启预警</label>
+                        </div>
+                        <button id="saveAlertBtn" class="btn btn-primary btn-sm">保存预警规则</button>
+                    </div>
+                </section>
+
+                <section id="currentWeather" class="weather-card hidden">
+                    <div class="card-header">
+                        <h3 class="card-title">实时天气</h3>
+                        <span id="weatherUpdateTime" class="update-time"></span>
+                    </div>
+                    <div class="card-body current-weather-body">
+                        <div class="weather-main">
+                            <div class="weather-city" id="weatherCity">--</div>
+                            <div class="weather-temp-area">
+                                <span class="weather-icon-lg" id="weatherIcon">--</span>
+                                <span class="weather-temp" id="weatherTemp">--°</span>
+                            </div>
+                            <div class="weather-desc" id="weatherDesc">--</div>
+                        </div>
+                        <div class="weather-details">
+                            <div class="detail-item"><span class="detail-label">体感温度</span><span class="detail-value" id="feelsLike">--°</span></div>
+                            <div class="detail-item"><span class="detail-label">风向</span><span class="detail-value" id="windDir">--</span></div>
+                            <div class="detail-item"><span class="detail-label">风速</span><span class="detail-value" id="windScale">--</span></div>
+                            <div class="detail-item"><span class="detail-label">湿度</span><span class="detail-value" id="humidity">--%</span></div>
+                            <div class="detail-item"><span class="detail-label">今日降雨概率</span><span class="detail-value" id="rainProbability">--%</span></div>
+                            <div class="detail-item"><span class="detail-label">紫外线指数</span><span class="detail-value" id="uvIndex">--</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="alertSection" class="feature-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="section-title clean-title">天气预警中心</h3>
+                        <span class="section-desc">根据你的自定义阈值自动判断风险</span>
+                    </div>
+                    <div id="alertContainer" class="alert-container"></div>
+                </section>
+
+                <section id="lifeSection" class="feature-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="section-title clean-title">智能生活指数</h3>
+                        <span class="section-desc">穿衣、雨伞、感冒、洗车、运动、防晒等建议</span>
+                    </div>
+                    <div id="lifeContainer" class="life-container"></div>
+                </section>
+
+                <section id="forecastSection" class="forecast-section hidden">
+                    <h3 class="section-title">7天天气预报</h3>
+                    <div id="forecastContainer" class="forecast-container"></div>
+                </section>
+
+                <section id="chartSection" class="feature-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="section-title clean-title">天气趋势分析</h3>
+                        <span class="section-desc">未来24小时和7天数据可视化</span>
+                    </div>
+                    <div id="chartContainer" class="chart-container"></div>
+                </section>
+
+                <section class="feature-grid two-columns">
+                    <div class="feature-panel map-card">
+                        <div class="panel-header compact-header">
+                            <h3 class="section-title clean-title">地图天气</h3>
+                            <span class="section-desc">点击城市点位快速查询</span>
+                        </div>
+                        <div id="mapPanel" class="map-panel"></div>
+                        <div id="mapResult" class="map-result">提示：点击地图上的城市点位。</div>
+                    </div>
+
+                    <div class="feature-panel trip-card">
+                        <div class="panel-header compact-header">
+                            <h3 class="section-title clean-title">天气日历 / 出行助手</h3>
+                            <span class="section-desc">按目的地、日期和活动类型给出建议</span>
+                        </div>
+                        <div class="trip-form">
+                            <input id="tripCityInput" class="search-input" placeholder="目的城市，如：成都">
+                            <input id="tripDateInput" class="search-input" type="date">
+                            <select id="tripTypeSelect" class="select-input">
+                                <option value="tour">旅游</option>
+                                <option value="sport">运动</option>
+                                <option value="commute">通勤</option>
+                                <option value="carwash">洗车</option>
+                                <option value="camping">露营</option>
+                            </select>
+                            <button id="planTripBtn" class="btn btn-primary">生成出行建议</button>
+                        </div>
+                        <div id="tripResult" class="trip-result">选择 7 天内日期后生成建议。</div>
+                    </div>
+                </section>
+
+                <section class="history-section">
+                    <div class="panel-header">
+                        <h3 class="section-title clean-title">查询历史</h3>
+                        <div class="history-actions">
+                            <button id="clearHistoryBtn" class="btn btn-outline btn-sm">清空历史</button>
+                        </div>
+                    </div>
+                    <div id="historyStats" class="history-stats"></div>
+                    <div id="historyContainer" class="history-container">
+                        <p class="history-empty">暂无查询记录</p>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="footer">
+                <p>天气预报网页系统 © 2026 | 数据来源：<a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/modules/utils.js"></script>
+    <script src="js/modules/auth.js"></script>
+    <script src="js/modules/weather.js"></script>
+    <script src="js/modules/history.js"></script>
+    <script src="js/modules/features.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

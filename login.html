@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 个性化天气预报与生活建议系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ==================== 登录页面 ==================== -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">🌤️</div>
+                    <h1 class="login-title">个性化天气系统</h1>
+                    <p class="login-subtitle">天气查询 · 智能预警 · 出行建议</p>
+                </div>
+
+                <form id="loginForm" class="login-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="loginUsername" class="form-label">用户名</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="loginUsername" class="form-input" placeholder="请输入用户名">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword" class="form-label">密码</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="loginPassword" class="form-input" placeholder="请输入密码">
+                        </div>
+                    </div>
+                    <div id="loginError" class="error-message hidden"></div>
+                    <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
+                        <span class="btn-text">登 录</span>
+                        <span class="btn-loading hidden">登录中...</span>
+                    </button>
+                    <a href="register.html" class="btn btn-outline btn-block" style="text-decoration:none;">注 册</a>
+                </form>
+
+                <div class="login-hint">
+                    <p>测试账号：zhangsan / 123456</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/modules/auth.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>
