@@ -1,23 +1,10 @@
 /**
- * 天气预报网页系统 - 历史记录模块
- * 作者：熊倡（接口提供）/ 吴裕勇（调用渲染）
- * 功能：历史记录的增删查、列表渲染
- * 
- * 依赖：api/history.php
+ * 天气预报网页系统 - 历史记录模块（增强版）
  */
-
 const History = {
-    /**
-     * 获取当前用户的历史查询记录（共享接口2）
-     * 调用方：吴裕勇 — main.js 页面初始化、查询成功后刷新
-     * @returns {Promise<Array<{record_id, query_city, query_time}>>}
-     */
     async getUserHistory() {
         try {
-            const response = await fetch(
-                'api/history.php?action=list',
-                { method: 'GET' }
-            );
+            const response = await fetch('api/history.php?action=list', { method: 'GET' });
             const data = await response.json();
             return data.success ? data.data : [];
         } catch (error) {
@@ -26,12 +13,6 @@ const History = {
         }
     },
 
-    /**
-     * 保存查询记录（共享接口3）
-     * 调用方：吴裕勇 — weather.js 查询成功后自动调用
-     * @param {string} city - 查询城市名称
-     * @returns {Promise<{success: boolean, recordId: number|null}>}
-     */
     async saveQueryRecord(city) {
         try {
             const response = await fetch('api/history.php', {
@@ -46,13 +27,45 @@ const History = {
         }
     },
 
-    /**
-     * 渲染历史记录列表到 DOM
-     * 调用方：吴裕勇
-     * @param {Array} records - 历史记录数组
-     */
+    async deleteQueryRecord(recordId) {
+        try {
+            const response = await fetch(`api/history.php?action=delete&id=${encodeURIComponent(recordId)}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            return { success: false, message: '删除失败' };
+        }
+    },
+
+    async clearQueryRecords() {
+        try {
+            const response = await fetch('api/history.php?action=clear', { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            return { success: false, message: '清空失败' };
+        }
+    },
+
+    renderHistoryStats(records) {
+        const box = document.getElementById('historyStats');
+        if (!box) return;
+        if (!records || !records.length) {
+            box.innerHTML = '<div class="stat-card"><strong>0</strong><span>本账号暂无查询数据</span></div>';
+            return;
+        }
+        const counter = {};
+        records.forEach(r => { counter[r.query_city] = (counter[r.query_city] || 0) + 1; });
+        const top = Object.entries(counter).sort((a,b)=>b[1]-a[1])[0];
+        const last = records[0];
+        box.innerHTML = `
+            <div class="stat-card"><strong>${records.length}</strong><span>最近记录数</span></div>
+            <div class="stat-card"><strong>${Utils.escapeHtml(top[0])}</strong><span>最常查询 · ${top[1]}次</span></div>
+            <div class="stat-card"><strong>${Utils.escapeHtml(last.query_city)}</strong><span>最近查询 · ${Utils.formatDateTime(last.query_time)}</span></div>
+        `;
+    },
+
     renderHistoryList(records) {
         const container = document.getElementById('historyContainer');
+        this.renderHistoryStats(records);
 
         if (!records || records.length === 0) {
             container.innerHTML = '<p class="history-empty">暂无查询记录</p>';
@@ -61,11 +74,12 @@ const History = {
 
         const listHtml = records.map(record => {
             const time = Utils.formatDateTime(record.query_time);
-            const city = this._escapeHtml(record.query_city);
+            const city = Utils.escapeHtml(record.query_city);
             return `
-                <li class="history-item" data-city="${city}" title="点击再次查询">
+                <li class="history-item" data-city="${city}" title="点击城市再次查询">
                     <span class="history-city">📍 ${city}</span>
                     <span class="history-time">${time}</span>
+                    <button class="history-delete" data-id="${record.record_id}" title="删除该记录">删除</button>
                 </li>
             `;
         }).join('');
@@ -73,7 +87,8 @@ const History = {
         container.innerHTML = `<ul class="history-list">${listHtml}</ul>`;
 
         container.querySelectorAll('.history-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.classList.contains('history-delete')) return;
                 const city = item.getAttribute('data-city');
                 if (city && typeof triggerSearch === 'function') {
                     document.getElementById('cityInput').value = city;
@@ -81,16 +96,19 @@ const History = {
                 }
             });
         });
-    },
 
-    /**
-     * HTML 转义，防止 XSS
-     * @param {string} str
-     * @returns {string}
-     */
-    _escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        container.querySelectorAll('.history-delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                const result = await this.deleteQueryRecord(id);
+                if (result.success) {
+                    Features?.toast('已删除该条历史记录');
+                    if (typeof refreshHistory === 'function') await refreshHistory();
+                } else {
+                    Features?.toast(result.message || '删除失败');
+                }
+            });
+        });
     }
 };

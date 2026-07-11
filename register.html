@@ -96,7 +96,7 @@
             </form>
 
             <div class="login-link">
-                已有账号？<a href="index.html">返回登录</a>
+                已有账号？<a href="login.html">返回登录</a>
             </div>
         </div>
     </div>
@@ -181,7 +181,7 @@
                         showSuccess('注册成功！即将跳转到登录页...');
                         form.reset();
                         setTimeout(function () {
-                            window.location.href = 'index.html';
+                            window.location.href = 'login.html';
                         }, 1500);
                     } else {
                         showError(data.message || '注册失败，请重试');

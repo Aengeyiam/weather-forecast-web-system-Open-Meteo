@@ -3,175 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天气预报系统</title>
+    <title>个性化天气预报与生活建议系统</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- ============================================================ -->
-    <!--  作者：王旭坤（HTML 结构） / 刘子懿（CSS 样式）              -->
-    <!--  说明：使用 display:none/block 切换登录页和天气主页          -->
-    <!-- ============================================================ -->
-
-    <!-- ==================== 登录页面 ==================== -->
-    <div id="loginPage" class="page active">
-        <div class="login-container">
-            <!-- 登录卡片 -->
-            <div class="login-card">
-                <!-- Logo / 标题区 -->
-                <div class="login-header">
-                    <div class="login-icon">🌤️</div>
-                    <h1 class="login-title">天气预报系统</h1>
-                    <p class="login-subtitle">登录以查看天气信息</p>
-                </div>
-
-                <!-- 登录表单 -->
-                <form id="loginForm" class="login-form" autocomplete="off">
-                    <div class="form-group">
-                        <label for="loginUsername" class="form-label">用户名</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
-                            <input type="text" id="loginUsername" class="form-input" placeholder="请输入用户名">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword" class="form-label">密码</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="loginPassword" class="form-input" placeholder="请输入密码">
-                        </div>
-                    </div>
-                    <div id="loginError" class="error-message hidden"></div>
-                    <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
-                        <span class="btn-text">登 录</span>
-                        <span class="btn-loading hidden">登录中...</span>
-                    </button>
-
-                    <!-- 注册按钮 -->
-                    <a href="register.html" class="btn btn-outline btn-block" style="text-decoration:none;">注 册</a>
-                </form>
-
-                <!-- 测试账号提示 -->
-                <div class="login-hint">
-                    <p>测试账号：zhangsan / 123456</p>
-                </div>
-            </div>
+    <div class="redirect-page">
+        <div class="redirect-card">
+            <div class="login-icon">🌤️</div>
+            <h1 class="login-title">个性化天气系统</h1>
+            <p class="login-subtitle">正在检测登录状态，请稍候...</p>
+            <div class="loading-indicator"><span class="spinner"></span> 页面跳转中</div>
+            <p class="redirect-links">
+                如果没有自动跳转，请打开 <a href="login.html">登录页</a> 或 <a href="main.html">主页</a>。
+            </p>
         </div>
     </div>
-
-    <!-- ==================== 天气主页 ==================== -->
-    <div id="weatherPage" class="page">
-        <div class="main-container">
-            <!-- 顶部导航栏 -->
-            <header class="topbar">
-                <div class="topbar-left">
-                    <span class="topbar-logo">🌤️</span>
-                    <h2 class="topbar-title">天气预报系统</h2>
-                </div>
-                <div class="topbar-right">
-                    <span class="topbar-welcome">欢迎，<strong id="displayUsername">用户</strong></span>
-                    <button id="logoutBtn" class="btn btn-outline btn-sm">退出登录</button>
-                </div>
-            </header>
-
-            <!-- 主内容区 -->
-            <main class="main-content">
-                <!-- 城市搜索区 -->
-                <section class="search-section">
-                    <div class="search-box">
-                        <input
-                            type="text"
-                            id="cityInput"
-                            class="search-input"
-                            placeholder="请输入城市名称（如：北京、上海、广州）"
-                            autocomplete="off"
-                        >
-                        <button id="searchBtn" class="btn btn-primary search-btn">
-                            <span class="btn-text">🔍 搜索</span>
-                            <span class="btn-loading hidden">查询中...</span>
-                        </button>
-                    </div>
-                    <!-- 搜索错误提示 -->
-                    <div id="searchError" class="error-message hidden"></div>
-                    <!-- 加载提示 -->
-                    <div id="searchLoading" class="loading-indicator hidden">
-                        <span class="spinner"></span> 正在查询...
-                    </div>
-                </section>
-
-                <!-- 实时天气卡片 -->
-                <section id="currentWeather" class="weather-card hidden">
-                    <div class="card-header">
-                        <h3 class="card-title">实时天气</h3>
-                        <span id="weatherUpdateTime" class="update-time"></span>
-                    </div>
-                    <div class="card-body current-weather-body">
-                        <!-- 左侧：城市 + 温度 + 描述 -->
-                        <div class="weather-main">
-                            <div class="weather-city" id="weatherCity">--</div>
-                            <div class="weather-temp-area">
-                                <span class="weather-icon-lg" id="weatherIcon">--</span>
-                                <span class="weather-temp" id="weatherTemp">--°</span>
-                            </div>
-                            <div class="weather-desc" id="weatherDesc">--</div>
-                        </div>
-                        <!-- 右侧：详细信息 -->
-                        <div class="weather-details">
-                            <div class="detail-item">
-                                <span class="detail-label">体感温度</span>
-                                <span class="detail-value" id="feelsLike">--°</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">风向</span>
-                                <span class="detail-value" id="windDir">--</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">风力</span>
-                                <span class="detail-value" id="windScale">--</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">湿度</span>
-                                <span class="detail-value" id="humidity">--%</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 7天预报区域 -->
-                <section id="forecastSection" class="forecast-section hidden">
-                    <h3 class="section-title">7天天气预报</h3>
-                    <div id="forecastContainer" class="forecast-container">
-                        <!-- JS 动态生成 7 个预报卡片 -->
-                    </div>
-                </section>
-
-                <!-- 历史记录区域 -->
-                <section class="history-section">
-                    <h3 class="section-title">查询历史</h3>
-                    <div id="historyContainer" class="history-container">
-                        <p class="history-empty">暂无查询记录</p>
-                    </div>
-                </section>
-            </main>
-
-            <!-- 页脚 -->
-            <footer class="footer">
-                <p>天气预报网页系统 © 2026 | 数据来源：<a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
-            </footer>
-        </div>
-    </div>
-
-    <!-- ==================== JS 脚本 ==================== -->
-    <!-- 配置（API Key 等） -->
-    <script src="js/config.js"></script>
-    <!-- 工具模块（天气图标映射等） -->
-    <script src="js/modules/utils.js"></script>
-    <!-- 认证模块（熊倡 Part A） -->
-    <script src="js/modules/auth.js"></script>
-    <!-- 天气 API + 渲染模块（吴裕勇 Part B） -->
-    <script src="js/modules/weather.js"></script>
-    <!-- 历史记录模块 -->
-    <script src="js/modules/history.js"></script>
-    <!-- 主入口 -->
-    <script src="js/main.js"></script>
+    <script>
+        fetch('api/session.php', { method: 'GET' })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data && data.success && data.logged_in) {
+                    window.location.replace('main.html');
+                } else {
+                    window.location.replace('login.html');
+                }
+            })
+            .catch(function () {
+                window.location.replace('login.html');
+            });
+    </script>
 </body>
 </html>
